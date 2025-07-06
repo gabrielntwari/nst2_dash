@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: my-nst2-dashboard
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py  # or whatever your entrypoint is
+    pythonVersion: 3.12.3
+    branch: main
+    autoDeploy: true
