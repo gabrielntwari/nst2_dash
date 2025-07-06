@@ -1,1 +1,1 @@
-web: python home4.py
+web: gunicorn home4:server --bind 0.0.0.0:$PORT
