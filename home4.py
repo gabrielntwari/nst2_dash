@@ -1024,7 +1024,9 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
 
 
     return f"{pillar} PILLAR ", combined_pillar_content
+  
 
 
 if __name__ == '__main__':
-  app.run_server(host="0.0.0.0", port=8000, debug=True)
+    port = int(os.environ.get("PORT", 8050)) # Use 8050 as a default for local testing, or any preferred default
+    app.run_server(debug=False, host='0.0.0.0', port=port)
