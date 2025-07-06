@@ -15,7 +15,7 @@ import dash_bootstrap_components as dbc # Import dbc for layout components
 # external_stylesheets will automatically pick up CSS from the 'assets' folder.
 app = dash.Dash(__name__, use_pages=True, suppress_callback_exceptions=True,
                 external_stylesheets=[dbc.themes.BOOTSTRAP, 'assets/style.css', 'assets/styles2.css'])
-
+server = app.server
 
 # Helper functions (Keep these as they are, they are used in callbacks)
 def normalize_col_name(col_name):
@@ -1027,6 +1027,9 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
   
 
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8050)) # Use 8050 as a default for local testing, or any preferred default
-    app.run_server(debug=True, host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    app.run_server(
+        host='0.0.0.0',
+        port=os.environ.get('PORT', 8080),  # 8080 for local dev
+        debug=False  # Disable in production
+    )
