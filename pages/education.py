@@ -14,7 +14,7 @@ dash.register_page(__name__, path='/education', name='Education Dashboard')
 
 # Load and clean your dataset
 try:
-    df = pd.read_excel('education.xlsx')
+    df = pd.read_excel('Education.xlsx')
     df['Units'] = df['Units'].str.replace('Percent', '%', regex=False)
     # Data cleaning
     df = df.dropna(subset=['Outcome'])  # Remove rows with null Outcomes
