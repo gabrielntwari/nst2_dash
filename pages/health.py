@@ -11,7 +11,7 @@ dash.register_page(__name__, path='/health', name='Health Dashboard')
 
 # Load and clean your dataset
 try:
-    df = pd.read_excel('health.xlsx')
+    df = pd.read_excel('Health.xlsx')
     df['Units'] = df['Units'].str.replace('Percent', '%', regex=False)
     # Data cleaning
     df = df.dropna(subset=['Outcome'])  # Remove rows with null Outcomes
