@@ -14,7 +14,7 @@ dash.register_page(__name__, path='/fsd', name='FSD Dashboard')
 
 # --- Data Loading and Processing (Ensure 'FSD.xlsx' is accessible) ---
 try:
-    df = pd.read_excel('FSD.xlsx')
+    df = pd.read_excel('fsd.xlsx')
     df['Units'] = df['Units'].str.replace('Percent', '%', regex=False)
     df = df.dropna(subset=['Outcome'])
     df['Outcome'] = df['Outcome'].astype(str)
