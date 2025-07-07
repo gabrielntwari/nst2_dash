@@ -1027,9 +1027,5 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
   
 
 
-if __name__ == "__main__":
-    app.run_server(
-        host='0.0.0.0',
-        port=os.environ.get('PORT', 8080),  # 8080 for local dev
-        debug=False  # Disable in production
-    )
+if __name__ == '__main__':
+  app.run(host="0.0.0.0", port=8080)
