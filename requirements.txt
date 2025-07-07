@@ -1,9 +1,10 @@
-dash==2.17.0
+dash==2.14.0
 pandas==2.1.4
-plotly==5.22.0
+numpy==1.26.0
+plotly==5.18.0
 dash-bootstrap-components==1.6.0
 openpyxl==3.1.2
-gunicorn==22.0.0
+gunicorn==21.2.0
 # If you continue to face issues, you might need to try older versions of pandas
 # For example, if 2.2.2 still fails with Python 3.11, try:
 # pandas==2.1.4
