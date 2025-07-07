@@ -227,16 +227,16 @@ html, body {
 }
 
 .metric-number {
-  font-size: 3.5em;
+  font-size: 4.5em;
   font-weight: 700;
-  color: var(--secondary-color);
+  color: blue;
   margin-bottom: 5px;
   line-height: 1;
 }
 
 .metric-label {
   font-size: 1.1em;
-  color: var(--light-text);
+  color: black;
   font-weight: 500;
 }
 
