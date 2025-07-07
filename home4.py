@@ -1,23 +1,16 @@
-from dash import html, dcc, callback, Output, Input, State
+from dash import html, dcc, callback, Output, Input, State, no_update
 import dash
 import dash.dash_table
 import plotly.express as px
 import pandas as pd
 import os
-import dash_bootstrap_components as dbc # Import dbc for layout components
+import dash_bootstrap_components as dbc
 
-# Import the sp.py file from the pages folder to register it as a page
-# import pages.sp # This line is crucial for registering the page?
-
-# Initialize the Dash app
-# IMPORTANT: use_pages=True enables multi-page functionality
-# We'll use dbc.themes.BOOTSTRAP for general styling and layout components.
-# external_stylesheets will automatically pick up CSS from the 'assets' folder.
 app = dash.Dash(__name__, use_pages=True, suppress_callback_exceptions=True,
                 external_stylesheets=[dbc.themes.BOOTSTRAP, 'assets/style.css', 'assets/styles2.css'])
-server = app.server
+server=app.server
 
-# Helper functions (Keep these as they are, they are used in callbacks)
+# Helper functions
 def normalize_col_name(col_name):
     if pd.isna(col_name):
         return ''
@@ -28,7 +21,7 @@ def normalize_status_value(status_val):
         return None
     return str(status_val).strip().upper()
 
-# Expected column names mapping (Keep as is)
+# Expected column names mapping
 EXPECTED_COLS_NORMALIZED = {
     'pillar': 'Pillar',
     'ssp_outcome': 'NST2 Outcome',
@@ -50,14 +43,14 @@ EXPECTED_COLS_NORMALIZED = {
     'data_sources_report': 'Data Sources (report)'
 }
 
-# Initialize data variables (Keep as is)
+# Initialize data variables
 initial_data = pd.DataFrame()
 initial_status_data = {}
 initial_pillar_options = []
 data_load_message = ""
 actual_col_name_map = {}
 
-# Try to load data (Keep as is, ensure 'matrix.xlsx' is in the same directory)
+# Try to load data
 try:
     df_raw = pd.read_excel('matrix.xlsx')
     df_raw['Units'] = df_raw['Units'].str.replace('Percent', '%', regex=False)
@@ -126,7 +119,7 @@ except Exception as e:
         className='info-message-error'
     )
 
-# Hardcoded sector options (Used for num_sectors metric and potentially for dynamic links later)
+# Hardcoded sector options
 initial_sector_options = [
     'PSDYE', 'WATSAN', 'ENERGY', 'PFM', 'FSD', 'SPORT AND CULTURE',
     'AGRICULTURE', 'HEALTH', 'EDUCATION', 'ICT', 'TRANSPORT',
@@ -134,173 +127,150 @@ initial_sector_options = [
 ]
 
 # Main layout of the application
-# This now includes the sidebar and a dynamic content area for pages
 app.layout = html.Div([
-    # Add dcc.Location to enable URL-based routing and callbacks
     dcc.Location(id='url', refresh=False),
-
-    # Stores for data and options (Keep as is)
     dcc.Store(id='uploaded-data', data=initial_data.to_dict('records') if not initial_data.empty else {}),
     dcc.Store(id='processed-status-data', data=initial_status_data),
     dcc.Store(id='dynamic-pillar-options', data=[opt['value'] for opt in initial_pillar_options]),
     
-    # Header section (Your existing header)
+    # Header section
     html.Div([
         html.Img(src='/assets/Coat_of_arms_of_Rwanda.svg', className='header-logo'),
         html.H1("NST2 PROGRESS DASHBOARD", id='dashboard-title', className='dashboard-title-text')
     ], className='header-container'),
 
-    # Main content wrapper (This is the new structure)
-    dbc.Row(className='app-content-wrapper g-0', children=[ # g-0 removes gutter for cleaner look
+    # Main content wrapper
+    dbc.Row(className='app-content-wrapper g-0', children=[
         # Sidebar Column
         dbc.Col(
             html.Div(id='sidebar', className='sidebar-container', children=[
-                # Changed home button to a dbc.NavLink for direct navigation
                 dbc.NavLink(
                     html.Button("🏠 Home", id='home-btn', n_clicks=0, className='home-button'),
-                    href="/", # Set href to root for home navigation
+                    href="/",
                     active="exact",
-                    className='sidebar-nav-link' # Apply your existing styling
+                    className='sidebar-nav-link'
                 ),
                 html.Br(),
                 html.Div(id='data-load-message-display', children=data_load_message),
                 
-                # Navigation for ICT and PSDYE pages using dbc.Nav and dbc.NavLink
-                html.Label("Select the SSP sector", className='dropdown-label'), # New label for clarity
+                html.Label("Select the SSP sector", className='dropdown-label'),
                 dbc.Nav(
                     [
                         dbc.NavLink(
                             html.Div("ICT Dashboard", className="ms-1"),
-                            href="/ict", # Path for ICT page
+                            href="/ict",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
                         dbc.NavLink(
                             html.Div("PSDYE Dashboard", className="ms-1"),
-                            href="/psdye", # Path for PSDYE page
+                            href="/psdye",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # Add this new NavLink for CENR
                         dbc.NavLink(
                             html.Div("CENR Dashboard", className="ms-1"),
-                            href="/cenr", # Path for CENR page
+                            href="/cenr",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # Add the new NavLink for Education
                         dbc.NavLink(
                             html.Div("Education Dashboard", className="ms-1"),
-                            href="/education", # Path for Education page
+                            href="/education",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # Add other links here later as needed
                         dbc.NavLink(
                             html.Div("Health Dashboard", className="ms-1"),
-                            href="/health", # Path for Health page
+                            href="/health",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
                         dbc.NavLink(
                             html.Div("Governance Dashboard", className="ms-1"),
-                            href="/governance", # Path for Governance page
+                            href="/governance",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
                         dbc.NavLink(
                             html.Div("Agriculture Dashboard", className="ms-1"),
-                            href="/agriculture", # Path for Agriculture page
+                            href="/agriculture",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for Transport
                         dbc.NavLink(
                             html.Div("Transport Dashboard", className="ms-1"),
-                            href="/transport", # Path for Transport page
+                            href="/transport",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for Social Protection
                         dbc.NavLink(
                             html.Div("Social Protection Dashboard", className="ms-1"),
-                            href="/social-protection", # Path for Social Protection page
+                            href="/social-protection",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for Energy
                         dbc.NavLink(
                             html.Div("Energy Dashboard", className="ms-1"),
-                            href="/energy", # Path for Energy page
+                            href="/energy",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                         # NEW: Add NavLink for Urbanisation
                         dbc.NavLink(
                             html.Div("Urbanisation Dashboard", className="ms-1"),
-                            href="/urbanisation", # Path for Urbanisation page
+                            href="/urbanisation",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for WATSAN
                         dbc.NavLink(
                             html.Div("WATSAN Dashboard", className="ms-1"),
-                            href="/watsan", # Path for WATSAN page
+                            href="/watsan",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for JRLO
                         dbc.NavLink(
                             html.Div("JRLO Dashboard", className="ms-1"),
-                            href="/jrlo", # Path for JRLO page
+                            href="/jrlo",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for Sport and Culture
                         dbc.NavLink(
                             html.Div("Sport and Culture Dashboard", className="ms-1"),
-                            href="/sport", # Path for Sport and Culture page
+                            href="/sport",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for PFM
                         dbc.NavLink(
                             html.Div("PFM Dashboard", className="ms-1"),
-                            href="/pfm", # Path for PFM page
+                            href="/pfm",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
-                        # NEW: Add NavLink for FSD
                         dbc.NavLink(
                             html.Div("FSD Dashboard", className="ms-1"),
-                            href="/fsd", # Path for FSD page
+                            href="/fsd",
                             active="exact",
-                            className='sidebar-nav-link' # Custom class for styling
+                            className='sidebar-nav-link'
                         ),
                     ],
                     vertical=True,
                     pills=True,
-                    className='sidebar-nav-group' # Custom class for styling
+                    className='sidebar-nav-group'
                 ),
-                html.Br(), # Add some space
-
-                # Removed the dcc.Dropdown for sector selection
+                html.Br(),
             ]),
-            width=2, # Sidebar takes 3 columns
-            className="sidebar-col" # Custom class for sidebar column
+            width=2,
+            className="sidebar-col"
         ),
 
-        # Main Content Area for Home Dashboard or Page Content
+        # Main Content Area
         dbc.Col(
             html.Div(id='main-content-wrapper', className='main-content-wrapper', children=[
-                # This is the area for your original home2.py dashboard content
-                # Its visibility is controlled by the toggle_home_content_visibility callback
-                # Changed initial style to 'display': 'none'
                 html.Div(id='home-dashboard-content', style={'display': 'none'}, children=[
                     # Metric cards
                     html.Div([
                         html.Div([
-                            html.H2(id='num-pillars-metric', className='metric-number', children="3"), # Changed initial value
+                            html.H2(id='num-pillars-metric', className='metric-number', children="3"),
                             html.P("Number of Pillars", className='metric-label')
                         ], className='metric-card'),
                         html.Div([
@@ -329,7 +299,7 @@ app.layout = html.Div([
                         )
                     ], className='pillar-dropdown-container'),
 
-                    # Integrated Pillar Subheader and Card Section here
+                    # Integrated Pillar Subheader and Card Section
                     html.H3(id='pillar-subheader', className='pillar-subheader'),
                     html.Div(id='pillar-card-section', className='pillar-card-section'),
 
@@ -339,7 +309,7 @@ app.layout = html.Div([
                             html.Div([
                                 html.Label("Select NST2 Outcome", className='dropdown-label'),
                                 dcc.Dropdown(
-                                    id='home-ssp-outcome-dropdown', # Unique ID
+                                    id='home-ssp-outcome-dropdown',
                                     options=[],
                                     value=None,
                                     placeholder='Choose outcome...',
@@ -349,7 +319,7 @@ app.layout = html.Div([
                             html.Div([
                                 html.Label("Select Indicator", className='dropdown-label'),
                                 dcc.Dropdown(
-                                    id='home-ssp-indicator-dropdown', # Unique ID
+                                    id='home-ssp-indicator-dropdown',
                                     options=[],
                                     value=None,
                                     placeholder='Choose indicator...',
@@ -358,54 +328,44 @@ app.layout = html.Div([
                             ], className='ssp-dropdown-col'),
                         ], className='ssp-dropdowns-row'),
 
-                        html.Div(id='home-indicator-detail-section', children=[ # Unique ID
-                            html.H3(id='home-selected-indicator-header', className='selected-indicator-header'), # Unique ID
-                            html.Div(id='home-indicator-details-content') # Unique ID
+                        html.Div(id='home-indicator-detail-section', children=[
+                            html.H3(id='home-selected-indicator-header', className='selected-indicator-header'),
+                            html.Div(id='home-indicator-details-content')
                         ])
                     ], className='ssp-section-container')
-                ]), # End of home-dashboard-content
+                ]),
                 
-                # This is where the content of other pages (ICT, PSDYE, Energy) will be displayed
-                # Dash's page_container automatically handles routing and displaying page layouts
                 dash.page_container
             ]),
-            width=10, # Main content area takes 9 columns
-            className="content-col" # Custom class for content column
+            width=10,
+            className="content-col"
         )
     ])
 ])
 
-# based on whether a page is active or the home button is clicked.
+# Callbacks
 @app.callback(
     Output('home-dashboard-content', 'style'),
-    Input('url', 'pathname'), # Only listen to pathname for visibility
+    Input('url', 'pathname'),
     prevent_initial_call=False
 )
 def toggle_home_content_visibility(pathname):
-    
-    # For any other path (i.e., when a sub-page like /ict or /psdye is active),
-    # the home content should be hidden.
     if pathname == '/':
         return {'display': 'block'}
     else:
-        # If the pathname is anything other than '/', hide the home dashboard content.
         return {'display': 'none'}
-
 
 @app.callback(
     Output('num-sectors-metric', 'children'),
-    Input('home-btn', 'n_clicks'), # Keep this input to trigger on home button click
-    Input('url', 'pathname'), # Also listen to URL changes to ensure it updates on page load
+    Input('home-btn', 'n_clicks'),
+    Input('url', 'pathname'),
     prevent_initial_call=False
 )
 def update_num_sectors_metric(n_clicks, pathname):
     ctx = dash.callback_context
-    # If no trigger, or if triggered by home button or root path, update the metric
     if not ctx.triggered or ctx.triggered_id == 'home-btn' or pathname == '/':
         return len(initial_sector_options)
-    # Otherwise, prevent update (e.g., when navigating to other pages)
     raise dash.exceptions.PreventUpdate
-
 
 @app.callback(
     Output('dashboard-title', 'children'),
@@ -432,22 +392,22 @@ def update_title(home_clicks, pathname):
             return "AGRICULTURE SSP PROGRESS DASHBOARD"
         elif pathname == '/transport':
             return "TRANSPORT SSP PROGRESS DASHBOARD"
-        elif pathname == '/social-protection': # Added Social Protection condition
-            return "SOCIAL PROTECTION SSP PROGRESS DASHBOARD" # Title for Social Protection
-        elif pathname == '/energy': # NEW: Added Energy condition
-            return "ENERGY SSP PROGRESS DASHBOARD" # NEW: Title for Energy
-        elif pathname == '/urbanisation': # NEW: Added Urbanisation condition
-            return "URBANISATION SSP PROGRESS DASHBOARD" # NEW: Title for Urbanisation
-        elif pathname == '/watsan': # NEW: Added WATSAN condition
-            return "WATSAN SSP PROGRESS DASHBOARD" # NEW: Title for WATSAN
-        elif pathname == '/jrlo': # NEW: Added JRLO condition
-            return "JRLO SSP PROGRESS DASHBOARD" # NEW: Title for JRLO
-        elif pathname == '/sport': # NEW: Added Sport and Culture condition
-            return "SPORT AND CULTURE SSP PROGRESS DASHBOARD" # NEW: Title for Sport and Culture
-        elif pathname == '/pfm': # NEW: Added PFM condition
-            return "PFM SSP PROGRESS DASHBOARD" # NEW: Title for PFM
-        elif pathname == '/fsd': # NEW: Added FSD condition
-            return "FSD SSP PROGRESS DASHBOARD" # NEW: Title for FSD
+        elif pathname == '/social-protection':
+            return "SOCIAL PROTECTION SSP PROGRESS DASHBOARD"
+        elif pathname == '/energy':
+            return "ENERGY SSP PROGRESS DASHBOARD"
+        elif pathname == '/urbanisation':
+            return "URBANISATION SSP PROGRESS DASHBOARD"
+        elif pathname == '/watsan':
+            return "WATSAN SSP PROGRESS DASHBOARD"
+        elif pathname == '/jrlo':
+            return "JRLO SSP PROGRESS DASHBOARD"
+        elif pathname == '/sport':
+            return "SPORT AND CULTURE SSP PROGRESS DASHBOARD"
+        elif pathname == '/pfm':
+            return "PFM SSP PROGRESS DASHBOARD"
+        elif pathname == '/fsd':
+            return "FSD SSP PROGRESS DASHBOARD"
         return "NST2 PROGRESS DASHBOARD"
 
     triggered_id = ctx.triggered_id
@@ -469,25 +429,24 @@ def update_title(home_clicks, pathname):
         return "AGRICULTURE SSP PROGRESS DASHBOARD"
     elif pathname == '/transport':
         return "TRANSPORT SSP PROGRESS DASHBOARD"
-    elif pathname == '/social-protection': # Added Social Protection condition
-        return "SOCIAL PROTECTION SSP PROGRESS DASHBOARD" # Title for Social Protection
-    elif pathname == '/energy': # NEW: Added Energy condition
-        return "ENERGY SSP PROGRESS DASHBOARD" # NEW: Title for Energy
-    elif pathname == '/urbanisation': # NEW: Added Urbanisation condition
-        return "URBANISATION SSP PROGRESS DASHBOARD" # NEW: Title for Urbanisation
-    elif pathname == '/watsan': # NEW: Added WATSAN condition
-        return "WATSAN SSP PROGRESS DASHBOARD" # NEW: Title for WATSAN
-    elif pathname == '/jrlo': # NEW: Added JRLO condition
-        return "JRLO SSP PROGRESS DASHBOARD" # NEW: Title for JRLO
-    elif pathname == '/sport': # NEW: Added Sport and Culture condition
-        return "SPORT AND CULTURE SSP PROGRESS DASHBOARD" # NEW: Title for Sport and Culture
-    elif pathname == '/pfm': # NEW: Added PFM condition
-        return "PFM SSP PROGRESS DASHBOARD" # NEW: Title for PFM
-    elif pathname == '/fsd': # NEW: Added FSD condition
-        return "FSD SSP PROGRESS DASHBOARD" # NEW: Title for FSD
+    elif pathname == '/social-protection':
+        return "SOCIAL PROTECTION SSP PROGRESS DASHBOARD"
+    elif pathname == '/energy':
+        return "ENERGY SSP PROGRESS DASHBOARD"
+    elif pathname == '/urbanisation':
+        return "URBANISATION SSP PROGRESS DASHBOARD"
+    elif pathname == '/watsan':
+        return "WATSAN SSP PROGRESS DASHBOARD"
+    elif pathname == '/jrlo':
+        return "JRLO SSP PROGRESS DASHBOARD"
+    elif pathname == '/sport':
+        return "SPORT AND CULTURE SSP PROGRESS DASHBOARD"
+    elif pathname == '/pfm':
+        return "PFM SSP PROGRESS DASHBOARD"
+    elif pathname == '/fsd':
+        return "FSD SSP PROGRESS DASHBOARD"
     else:
         return "NST2 PROGRESS DASHBOARD"
-
 
 @app.callback(
     Output('dynamic-pillar-options', 'data'),
@@ -496,20 +455,20 @@ def update_title(home_clicks, pathname):
     Output('pillar-dropdown', 'value'),
     Output('num-outcomes-metric', 'children'),
     Output('num-indicators-metric', 'children'),
-    Output('num-pillars-metric', 'children'), # Added output for num-pillars-metric
+    Output('num-pillars-metric', 'children'),
     Input('uploaded-data', 'data'),
     prevent_initial_call=False
 )
 def update_dynamic_data_and_metrics(initial_data_dict):
     if not initial_data_dict:
-        return [], {}, [], None, 0, 0, 0 # Added 0 for num_pillars
+        return [], {}, [], None, 0, 0, 0
         
     df = pd.DataFrame(initial_data_dict)
 
     num_sectors = len(initial_sector_options)
     num_outcomes = 0
     num_indicators = 0
-    num_pillars = 0 # Initialize num_pillars
+    num_pillars = 0
     pillar_options = []
     processed_status_data = {}
     default_pillar_value = None
@@ -523,7 +482,7 @@ def update_dynamic_data_and_metrics(initial_data_dict):
 
         if actual_pillar_col and actual_pillar_col in df.columns:
             unique_pillars = [p for p in df[actual_pillar_col].unique() if pd.notna(p)]
-            num_pillars = len(unique_pillars) # Calculate num_pillars
+            num_pillars = len(unique_pillars)
             pillar_options = [{'label': p, 'value': p} for p in unique_pillars]
             default_pillar_value = pillar_options[0]['value'] if pillar_options else None
 
@@ -539,13 +498,11 @@ def update_dynamic_data_and_metrics(initial_data_dict):
 
             if status_2024_25_col and status_2026_27_col:
                 for pillar in unique_pillars:
-                    # Ensure 'df' (from uploaded-data) is used for filtering
                     pillar_df = df[df[actual_pillar_col] == pillar]
                     
                     counts_2024_25 = pillar_df[status_2024_25_col].value_counts().to_dict()
                     status_counts_2024_25 = {cat: counts_2024_25.get(cat, 0) for cat in status_categories}
                     
-                    # Corrected variable name from status_2026_7_col to status_2026_27_col
                     counts_2026_27 = pillar_df[status_2026_27_col].value_counts().to_dict()
                     status_counts_2026_27 = {cat: counts_2026_27.get(cat, 0) for cat in status_categories}
                     
@@ -554,7 +511,7 @@ def update_dynamic_data_and_metrics(initial_data_dict):
                         '2026/7': status_counts_2026_27
                     }
             else:
-                pass # Warning message handled in initial data load
+                pass
 
             actual_ssp_outcome_col = None
             actual_indicator_col = None
@@ -576,9 +533,8 @@ def update_dynamic_data_and_metrics(initial_data_dict):
         default_pillar_value,
         num_outcomes,
         num_indicators,
-        num_pillars # Return num_pillars
+        num_pillars
     )
-
 
 @app.callback(
     Output('home-ssp-outcome-dropdown', 'options'),
@@ -655,9 +611,14 @@ def update_indicator_dropdown(selected_outcome, uploaded_data_dict):
     State('home-ssp-outcome-dropdown', 'value'),
     State('pillar-dropdown', 'value'),
     State('uploaded-data', 'data'),
+    State('url', 'pathname'),
     prevent_initial_call=True
 )
-def display_indicator_details(indicator, outcome, pillar, uploaded_data_dict):
+def display_indicator_details(indicator, outcome, pillar, uploaded_data_dict, pathname):
+    # Only proceed if we're on the home page
+    if pathname != '/':
+        return no_update, no_update
+        
     if not uploaded_data_dict:
         return html.Div("No data available.", className='info-message-error'), ""
         
@@ -856,7 +817,7 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
     # Get actual column names for calculations
     actual_ssp_outcome_col = None
     actual_indicator_col = None
-    actual_pillar_col = None # Re-define to ensure it's picked up within this scope
+    actual_pillar_col = None
 
     for col in df.columns:
         if normalize_col_name(col) == normalize_col_name(EXPECTED_COLS_NORMALIZED['ssp_outcome']):
@@ -879,7 +840,6 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
     if actual_indicator_col and actual_indicator_col in pillar_df.columns:
         num_indicators_for_pillar = pillar_df[actual_indicator_col].nunique()
 
-    # Metric cards for pillar-specific outcomes and indicators - adapted from home2.py structure
     metric_cards_for_pillar = [
         html.Div([
             html.H2(str(num_outcomes_for_pillar), className='metric-number'),
@@ -893,9 +853,9 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
 
     if pillar not in processed_status_data:
         combined_pillar_content = html.Div([
-            html.Div(metric_cards_for_pillar, className='pillar-top-cards'), # Integrate metric cards here
+            html.Div(metric_cards_for_pillar, className='pillar-top-cards'),
             html.Div(f"No status data for {pillar}", className='info-message')
-        ], className='pillar-dashboard-content') # Outer div for the pillar section
+        ], className='pillar-dashboard-content')
         return f"Pillar: {pillar}", combined_pillar_content
 
     status_data = processed_status_data.get(pillar, {})
@@ -931,39 +891,38 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
         style_data_conditional=[
             {
                 'if': {'filter_query': '{Status} = "COMPLETED"'},
-                'backgroundColor': '#d4edda', # Light green
+                'backgroundColor': '#d4edda',
                 'color': '#155724'
             },
             {
                 'if': {'filter_query': '{Status} = "GOOD"'},
-                'backgroundColor': '#d1ecf1', # Light blue
+                'backgroundColor': '#d1ecf1',
                 'color': '#0c5460'
             },
             {
                 'if': {'filter_query': '{Status} = "SATISFACTORY"'},
-                'backgroundColor': '#fff3cd', # Light yellow
+                'backgroundColor': '#fff3cd',
                 'color': '#856404'
             },
             {
                 'if': {'filter_query': '{Status} = "LOW"'},
-                'backgroundColor': '#f8d7da', # Light red
+                'backgroundColor': '#f8d7da',
                 'color': '#721c24'
             }
         ]
     )
 
     # Pie charts
-    pie_graphs = [] # Renamed to avoid confusion with the pie_charts list from previous turn
+    pie_graphs = []
     status_colors = {
-        'COMPLETED': '#28a745',  # Green
-        'GOOD': '#007bff',       # Blue
-        'SATISFACTORY': '#ffc107', # Yellow
-        'LOW': '#dc3545'         # Red
+        'COMPLETED': '#28a745',
+        'GOOD': '#007bff',
+        'SATISFACTORY': '#ffc107',
+        'LOW': '#dc3545'
     }
 
     for year_label, counts_dict in [('2024/25', status_counts_2024_25), ('2026/27', status_counts_2026_27)]:
         pie_df = pd.DataFrame(list(counts_dict.items()), columns=['Status', 'Count'])
-        # Filter out statuses with zero count for cleaner pie charts
         pie_df = pie_df[pie_df['Count'] > 0]
         if not pie_df.empty:
             fig = px.pie(pie_df, 
@@ -972,60 +931,52 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
                          title=f'Indicator Status ({year_label})',
                          color='Status',
                          color_discrete_map=status_colors,
-                         hole=0.3 # Creates a donut chart
+                         hole=0.3
                         )
             fig.update_traces(textinfo='percent')
             fig.update_layout(
                 margin={"l": 20, "r": 20, "t": 50, "b": 20},
                 legend_title_text='Status',
-                paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font_color="#333",
                 title_font_size=16,
-                title_x=0.5 # Center title
+                title_x=0.5
             )
-            # Removed the inline style from dcc.Graph. 
-            # The dbc.Col below will handle the sizing and horizontal arrangement.
             pie_graphs.append(dcc.Graph(figure=fig, className='pie-chart-graph'))
         else:
             pie_graphs.append(html.Div(f"No data for {year_label} status breakdown.", className='info-message-small'))
 
-    # Use dbc.Row and dbc.Col to arrange pie charts horizontally
-    pie_charts_layout = dbc.Row(className='g-0', children=[ # g-0 removes column gutters
+    pie_charts_layout = dbc.Row(className='g-0', children=[
         dbc.Col(
-            dbc.Card(pie_graphs[0], className='h-100'), # Wrap dcc.Graph in dbc.Card
-            width=12, md=6, # On medium and larger screens, each pie takes 6/12 (half) of the available width
-            className='d-flex align-items-stretch pie-chart-col' # Ensure pies stretch and add custom class
+            dbc.Card(pie_graphs[0], className='h-100'),
+            width=12, md=6,
+            className='d-flex align-items-stretch pie-chart-col'
         ) if len(pie_graphs) > 0 else None,
         dbc.Col(
-            dbc.Card(pie_graphs[1], className='h-100'), # Wrap dcc.Graph in dbc.Card
-            width=12, md=6, # On medium and larger screens, each pie takes 6/12 (half)
-            className='d-flex align-items-stretch pie-chart-col' # Ensure pies stretch and add custom class
+            dbc.Card(pie_graphs[1], className='h-100'),
+            width=12, md=6,
+            className='d-flex align-items-stretch pie-chart-col'
         ) if len(pie_graphs) > 1 else None,
-        # Fallback if only one pie chart for better single-chart presentation
         dbc.Col(
             dbc.Card(pie_graphs[0], className='h-100') if len(pie_graphs) == 1 else None,
-            width=12, # Full width if only one pie
-            className='d-flex align-items-stretch pie-chart-col' # Ensure it stretches
+            width=12,
+            className='d-flex align-items-stretch pie-chart-col'
         ) if len(pie_graphs) == 1 else None,
     ])
 
-    # Combine all elements into the structure from home2.py
     combined_pillar_content = html.Div([
-        html.Div([ # pillar-left-panel
+        html.Div([
             html.Div(metric_cards_for_pillar, className='pillar-top-cards'),
             html.Div(status_table_component, className='status-table-container')
         ], className='pillar-left-panel'),
-        html.Div([ # pillar-right-panel
+        html.Div([
             html.P("Status Breakdown", className='section-title'),
-            pie_charts_layout # Use the dbc.Row layout for pie charts
+            pie_charts_layout
         ], className='pillar-right-panel')
-    ], className='pillar-dashboard-content') # This is the main outer div as per home2.py
-
+    ], className='pillar-dashboard-content')
 
     return f"{pillar} PILLAR ", combined_pillar_content
-  
-
 
 if __name__ == '__main__':
   app.run(host="0.0.0.0", port=8080)
