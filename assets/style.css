@@ -213,7 +213,7 @@ html, body {
 }
 
 .metric-card {
-  background-color: var(--white);
+  background-color: lightblue;
   border-radius: 0.75rem;
   padding: 1.5rem;
   box-shadow: var(--card-shadow);
@@ -245,7 +245,7 @@ html, body {
 .metric-number {
   font-size: 2.5rem;
   font-weight: 700;
-  color: blue;
+  color: black;
   margin-bottom: 0.25rem;
   line-height: 1;
 }
