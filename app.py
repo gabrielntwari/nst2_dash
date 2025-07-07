@@ -1031,5 +1031,5 @@ def display_pillar_dashboard(pillar, processed_status_data, uploaded_data_dict):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
 
