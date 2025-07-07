@@ -482,7 +482,7 @@ def update_dynamic_data_and_metrics(initial_data_dict):
 
         if actual_pillar_col and actual_pillar_col in df.columns:
             unique_pillars = [p for p in df[actual_pillar_col].unique() if pd.notna(p)]
-            num_pillars = len(unique_pillars)
+            num_pillars = 3
             pillar_options = [{'label': p, 'value': p} for p in unique_pillars]
             default_pillar_value = pillar_options[0]['value'] if pillar_options else None
 
